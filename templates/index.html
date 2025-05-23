@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yuki Reddit Feed</title>
+    <title>F1 Reddit Feed</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>Yuki Reddit Feed</h1>
+    <h1>F1 Reddit Feed</h1>
 
     <form method="get" action="/">
-        <input type="text" name="q" placeholder="Search keyword or author..." value="{{ keyword }}">
+        <input type="text" name="q" placeholder="Search..." value="{{ keyword }}">
+        <select name="sort">
+            <option value="score" {% if sort_by == 'score' %}selected{% endif %}>Top Score</option>
+            <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Most Comments</option>
+        </select>
         <button type="submit">Search</button>
     </form>
 
@@ -18,7 +22,18 @@
             <p><strong>Author:</strong> {{ post.author }}</p>
             <p><strong>Score:</strong> {{ post.score }} | <strong>Comments:</strong> {{ post.comments }}</p>
         </div>
-        <hr>
     {% endfor %}
+
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page - 1 }}">« Prev</a>
+        {% endif %}
+
+        Page {{ page }} of {{ total_pages }}
+
+        {% if page < total_pages %}
+            <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page + 1 }}">Next »</a>
+        {% endif %}
+    </div>
 </body>
 </html>

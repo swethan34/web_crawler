@@ -5,37 +5,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Reddit credentials
-client_id = os.getenv("REDDIT_CLIENT_ID")
-client_secret = os.getenv("REDDIT_CLIENT_SECRET")
-user_agent = os.getenv("REDDIT_USER_AGENT")
-
-# MySQL credentials
-db_host = os.getenv("MYSQL_HOST")
-db_user = os.getenv("MYSQL_USER")
-db_password = os.getenv("MYSQL_PASSWORD")
-db_name = os.getenv("MYSQL_DATABASE")
-
-# Connect to Reddit
+# Reddit API credentials
 reddit = praw.Reddit(
-    client_id=client_id,
-    client_secret=client_secret,
-    user_agent=user_agent
+    client_id=os.getenv("REDDIT_CLIENT_ID"),
+    client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
+    user_agent=os.getenv("REDDIT_USER_AGENT")
 )
 
-# Connect to MySQL
+# MySQL connection
 conn = mysql.connector.connect(
-    host=db_host,
-    user=db_user,
-    password=db_password,
-    database=db_name
+    host=os.getenv("MYSQL_HOST"),
+    user=os.getenv("MYSQL_USER"),
+    password=os.getenv("MYSQL_PASSWORD"),
+    database=os.getenv("MYSQL_DATABASE")
 )
 cursor = conn.cursor()
 
-# Create table (if not exists)
+# Create table if needed
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS posts (
-        id VARCHAR(10) PRIMARY KEY,
+        id VARCHAR(20) PRIMARY KEY,
         title TEXT,
         author VARCHAR(255),
         score INT,
@@ -43,10 +32,18 @@ cursor.execute('''
         url TEXT
     )
 ''')
+conn.commit()
 
-def fetch_yuki_posts():
+def fetch_f1_posts(min_score=30, target_new=50):
     subreddit = reddit.subreddit("all")
-    for submission in subreddit.search("Yuki Tsunoda", sort="new", limit=20):
+    added = 0
+
+    for submission in subreddit.search("F1", sort="new", limit=200):
+        if submission.score < min_score:
+            continue
+
+        post_url = f"https://www.reddit.com{submission.permalink}"
+
         try:
             cursor.execute('''
                 INSERT INTO posts (id, title, author, score, comments, url)
@@ -57,15 +54,19 @@ def fetch_yuki_posts():
                 str(submission.author),
                 submission.score,
                 submission.num_comments,
-                submission.url
+                post_url
             ))
-            print(f"Saved: {submission.title}")
+            added += 1
+            print(f"[+] {submission.title}")
         except mysql.connector.IntegrityError:
-            print(f"Skipped duplicate: {submission.title}")
+            continue
+
+        if added >= target_new:
+            break
 
     conn.commit()
+    cursor.close()
+    conn.close()
 
-fetch_yuki_posts()
-cursor.close()
-conn.close()
-
+if __name__ == "__main__":
+    fetch_f1_posts()
