@@ -15,7 +15,6 @@ db_config = {
     'password': os.getenv("MYSQL_PASSWORD"),
     'database': os.getenv("MYSQL_DATABASE")
 }
-
 @app.route("/")
 def home():
     keyword = request.args.get("q", "")
@@ -23,6 +22,10 @@ def home():
     page = int(request.args.get("page", 1))
     per_page = 10
     offset = (page - 1) * per_page
+
+    # ✅ Only allow safe sort fields
+    if sort_by not in ['score', 'comments']:
+        sort_by = 'score'
 
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor(dictionary=True)

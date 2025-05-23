@@ -25,15 +25,16 @@
     {% endfor %}
 
     <div class="pagination">
-        {% if page > 1 %}
-            <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page - 1 }}">« Prev</a>
-        {% endif %}
-
-        Page {{ page }} of {{ total_pages }}
-
-        {% if page < total_pages %}
-            <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page + 1 }}">Next »</a>
-        {% endif %}
-    </div>
+      {% if page > 1 %}
+          <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page - 1 }}">« Prev</a>
+      {% endif %}
+  
+      Page {{ page }} of {{ total_pages }}
+  
+      {% if page < total_pages %}
+          <a href="?q={{ keyword }}&sort={{ sort_by }}&page={{ page + 1 }}">Next »</a>
+      {% endif %}
+  </div>
+  
 </body>
 </html>
